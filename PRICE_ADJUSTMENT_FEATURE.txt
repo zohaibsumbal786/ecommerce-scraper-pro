@@ -1,0 +1,61 @@
+============================================================
+  NEW FEATURE: Fixed Dollar Amount Price Adjustment
+============================================================
+
+WHAT'S NEW:
+-----------
+You can now adjust prices by either:
+  1. PERCENTAGE (existing feature)
+     - Example: -15% decreases price by 15%
+     - Example: +20% increases price by 20%
+  
+  2. FIXED AMOUNT (NEW!)
+     - Example: -1 decreases price by $1
+     - Example: +5 increases price by $5
+
+HOW TO USE:
+-----------
+1. Start the scraper by double-clicking START.bat
+2. Navigate to any store's export settings
+3. In the "Price Adjustment" section:
+   - Select "Adjustment Type": 
+     * Choose "Percentage (%)" for percentage-based adjustment
+     * Choose "Fixed Amount ($)" for dollar-based adjustment
+   - Enter your adjustment value:
+     * For percentage: -50 to 50 (negative = decrease, positive = increase)
+     * For fixed amount: any dollar value (e.g., -1, -2.50, +5, +10.99)
+4. Preview shows how the adjustment affects prices
+5. Export your products with the selected adjustment
+
+EXAMPLES:
+---------
+Percentage Mode:
+  Original Price: $100
+  Adjustment: -15%
+  New Price: $85.00
+
+Fixed Amount Mode:
+  Original Price: $100
+  Adjustment: -$1
+  New Price: $99.00
+
+TECHNICAL DETAILS:
+------------------
+- Backend: Updated main.py with new price_adjust_type parameter
+- Frontend: Updated static/index.html with toggle UI
+- All export endpoints support both modes:
+  * /api/stores/{id}/export/csv
+  * /api/stores/{id}/export/by-category
+  * /api/stores/{id}/export/filtered-csv
+
+CLEANUP PERFORMED:
+------------------
+- Removed 26 unnecessary .md documentation files
+- Removed test files (export_test.py, test_*.zip, test_*.csv)
+- Removed test directories (test_category_extracted, test_export)
+- Removed emoji-named files
+- System is now clean and production-ready
+
+============================================================
+System Status: ✓ RUNNING on http://localhost:8000
+============================================================

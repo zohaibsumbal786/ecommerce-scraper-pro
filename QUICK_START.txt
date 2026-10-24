@@ -1,0 +1,81 @@
+═══════════════════════════════════════════════════════════════════════════
+  SHOPIFY SCRAPER PRO - QUICK START GUIDE
+═══════════════════════════════════════════════════════════════════════════
+
+📌 STEP 1: START THE SERVER
+────────────────────────────────────────────────────────────────────────────
+   Double-click: RUN_SERVER.bat
+   
+   OR run manually:
+   C:\Users\zohai\AppData\Local\Programs\Python\Python313\python.exe -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+   ⚠️  Wait for: "Application startup complete"
+
+────────────────────────────────────────────────────────────────────────────
+
+📌 STEP 2: OPEN BROWSER AND REFRESH
+────────────────────────────────────────────────────────────────────────────
+   1. Go to: http://localhost:8000
+   
+   2. ⚠️  IMPORTANT: Press Ctrl+Shift+R to hard refresh!
+      (This loads the updated JavaScript code)
+
+────────────────────────────────────────────────────────────────────────────
+
+📌 STEP 3: TEST EXPORT FEATURE
+────────────────────────────────────────────────────────────────────────────
+   1. Click any store card (must show "Complete" status)
+   2. Click "Export All CSV" button (blue gradient button)
+   3. Watch the progress modal:
+      ✓ Shows file count
+      ✓ Progress bar animates 0-100%
+      ✓ Status updates: "Creating file X of Y..."
+      ✓ Modal auto-closes after download
+   4. Check your Downloads folder for ZIP file
+
+────────────────────────────────────────────────────────────────────────────
+
+✅ WHAT'S INCLUDED IN EXPORTS
+────────────────────────────────────────────────────────────────────────────
+   ✓ All products from the store
+   ✓ Split into 15MB files automatically
+   ✓ Packaged in ZIP file
+   ✓ Vendor: "Luxury Wardrobe" (all products)
+   ✓ Prices: 15% reduced (×0.85)
+   ✓ Inventory: 300 units (all variants)
+   ✓ WhatsApp: https://wa.me/12363148438
+   ✓ Return policy: "within 7 days"
+   ✓ Valid Shopify CSV format (57 columns)
+   ✓ Ready to import into Shopify!
+
+────────────────────────────────────────────────────────────────────────────
+
+🔧 TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────
+
+❌ Modal doesn't appear?
+   → Did you refresh the browser? (Ctrl+Shift+R)
+   → Clear browser cache and try again
+
+❌ Export takes too long?
+   → Large stores (20k+ products) need 30-60 seconds
+   → This is normal - be patient!
+
+❌ Download doesn't start?
+   → Check browser's download notification
+   → Check if popups are blocked
+
+────────────────────────────────────────────────────────────────────────────
+
+📁 FILES TO CHECK
+────────────────────────────────────────────────────────────────────────────
+   ✓ RUN_SERVER.bat - Start server easily
+   ✓ TEST_EXPORT_PROGRESS.md - Detailed testing guide
+   ✓ EXPORT_FEATURE_COMPLETE.md - Full documentation
+   ✓ main.py - Backend code (export functions)
+   ✓ static/index.html - Frontend code (modal + progress)
+
+────────────────────────────────────────────────────────────────────────────
+
+🎉 EVERYTHING IS READY! JUST REFRESH YOUR BROWSER!
+════════════════════════════════════════════════════════════════════════════

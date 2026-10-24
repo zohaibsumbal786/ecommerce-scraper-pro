@@ -1,0 +1,51 @@
+============================================================
+  eCommerce Scraper Pro — How To Run
+============================================================
+
+WINDOWS
+-------
+1. Copy the entire project folder to your computer.
+2. Double-click  START.bat
+3. The first time it runs it will install Python packages
+   automatically (needs internet, takes ~1-2 minutes).
+4. After that, your browser opens at http://localhost:8000
+   automatically.
+
+  If Windows blocks the file:
+  → Right-click START.bat → "Run as administrator"
+
+  If Python is not installed:
+  → The bat file will open the Python download page for you.
+  → Install Python 3.11, CHECK "Add python.exe to PATH",
+    then double-click START.bat again.
+
+
+MAC
+---
+1. Copy the entire project folder to your Mac.
+2. Double-click  START_MAC.command
+
+  If macOS blocks it ("unidentified developer"):
+  → Right-click → Open → click Open in the popup
+  OR
+  → Open Terminal, run:
+      chmod +x /path/to/START_MAC.command
+    then double-click it.
+
+  If Python is not installed:
+  → The script will open the Python download page.
+  → Or install via Homebrew:
+      brew install python3
+
+
+NOTES
+-----
+- First launch installs packages (~1-2 min). Every launch
+  after that is instant.
+- The browser opens automatically. If it doesn't, go to:
+    http://localhost:8000
+- To stop the server: close the terminal/command window.
+- Data (scraped products) is saved in:  shopify_scraper.db
+- Exported CSV files are Shopify-import ready (57 columns).
+
+============================================================

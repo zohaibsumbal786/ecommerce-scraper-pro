@@ -1,0 +1,1657 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eCommerce Scraper Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideInRight { from { transform:translateX(100%); } to { transform:none; } }
+    @keyframes pulse { 0%, 100% { opacity:1; } 50% { opacity:0.5; } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes loading { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    .fade-in-up { animation: fadeInUp 0.5s ease; }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-bg-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .gradient-bg-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .gradient-bg-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+    .card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .progress-bar { transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+    .btn { transition: all 0.2s ease; position: relative; overflow: hidden; }
+    .btn:before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,0.3); transform:translate(-50%,-50%); transition:width 0.6s, height 0.6s; }
+    .btn:active:before { width:300px; height:300px; }
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-track { background:#f1f1f1; }
+    ::-webkit-scrollbar-thumb { background:#c7d2fe; border-radius:4px; }
+    .toast { animation: slideInRight 0.4s ease, fadeIn 0.4s ease; }
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:loading 1.5s infinite; }
+    .logo-pulse { animation: pulse 2s infinite; }
+    .nav-active-indigo { background:white; box-shadow:0 1px 4px rgba(0,0,0,0.1); color:#4f46e5; }
+    .nav-active-purple { background:white; box-shadow:0 1px 4px rgba(0,0,0,0.1); color:#7c3aed; }
+    .nav-active-teal { background:white; box-shadow:0 1px 4px rgba(0,0,0,0.1); color:#0d9488; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 min-h-screen">
+
+<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg logo-pulse">
+        <i class="fas fa-robot text-white text-sm"></i>
+      </div>
+      <div class="hidden sm:block">
+        <span class="font-black text-gray-900 text-base">eCommerce</span><span class="font-black bg-clip-text text-transparent gradient-bg text-base">Scraper</span>
+        <span class="ml-1 text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-semibold">PRO</span>
+      </div>
+    </div>
+    <!-- Nav Tabs -->
+    <div class="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+      <button onclick="showMainView('home')" id="nav-home"
+        class="nav-tab nav-active-indigo flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all">
+        <i class="fas fa-tag text-xs"></i><span>Shopify</span>
+      </button>
+      <button onclick="showMainView('woo')" id="nav-woo"
+        class="nav-tab flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all text-gray-500 hover:text-purple-600">
+        <i class="fab fa-wordpress text-xs"></i><span>WooCommerce</span>
+      </button>
+      <button onclick="showMainView('publisher')" id="nav-publisher"
+        class="nav-tab flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all text-gray-500 hover:text-teal-600">
+        <i class="fas fa-rocket text-xs"></i><span class="hidden sm:inline">Publisher</span>
+      </button>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <div id="live-indicator" class="hidden items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+        <div class="w-2 h-2 bg-green-500 rounded-full" style="animation:pulse 1s infinite"></div>
+        <span class="text-xs text-green-700 font-semibold">Live</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="pt-16">
+
+<!-- ═══════ SHOPIFY VIEW ═══════ -->
+<div id="view-home">
+  <div class="relative overflow-hidden">
+    <div class="absolute inset-0 gradient-bg opacity-5"></div>
+    <div class="absolute top-0 right-0 w-96 h-96 bg-purple-300 rounded-full filter blur-3xl opacity-20"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 bg-blue-300 rounded-full filter blur-3xl opacity-20"></div>
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full mb-5">
+        <div class="w-2 h-2 bg-indigo-500 rounded-full" style="animation:pulse 1s infinite"></div>
+        <span class="text-sm font-semibold text-indigo-600">Shopify Public API — No Auth Required</span>
+      </div>
+      <h1 class="text-5xl sm:text-6xl font-black text-gray-900 mb-4 leading-tight">
+        Scrape Any<br><span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Shopify Store</span>
+      </h1>
+      <p class="text-xl text-gray-500 mb-6 max-w-xl mx-auto">
+        Extract every product, variant, and image. Works on any public Shopify store — no API key needed.
+      </p>
+      <div class="flex flex-wrap justify-center gap-2 mb-8">
+        <span class="text-xs text-gray-400 font-semibold self-center">Try free:</span>
+        <button onclick="fillUrl(this)" data-url="https://allbirds.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">allbirds.com</button>
+        <button onclick="fillUrl(this)" data-url="https://gymshark.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">gymshark.com</button>
+        <button onclick="fillUrl(this)" data-url="https://kith.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">kith.com</button>
+        <button onclick="fillUrl(this)" data-url="https://www.fashionnova.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">fashionnova.com</button>
+        <button onclick="fillUrl(this)" data-url="https://kylie.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">kylie.com</button>
+        <button onclick="fillUrl(this)" data-url="https://nativecos.com" class="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 font-semibold shadow-sm">nativecos.com</button>
+      </div>
+      <div class="max-w-2xl mx-auto">
+        <div class="flex flex-col sm:flex-row gap-3 p-2 bg-white rounded-2xl shadow-xl border border-gray-100">
+          <div class="flex-1 flex items-center gap-3 px-4">
+            <i class="fas fa-link text-gray-400"></i>
+            <input id="url-input" type="url" placeholder="https://gymshark.com"
+              autocomplete="off" spellcheck="false"
+              class="flex-1 py-3 text-base bg-transparent border-0 focus:outline-none text-gray-800 placeholder-gray-400"
+              onkeydown="if(event.key==='Enter') startScrape()" />
+          </div>
+          <button id="scrape-btn" onclick="startScrape()"
+            class="btn px-8 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 text-base whitespace-nowrap">
+            <i class="fas fa-search mr-2"></i>Scrape Store
+          </button>
+          <button id="stop-btn" onclick="stopScrape()"
+            class="hidden btn px-8 py-3 bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold rounded-xl shadow-lg text-base whitespace-nowrap">
+            <i class="fas fa-stop mr-2"></i>Stop
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopify Progress -->
+  <div id="progress-section" class="hidden max-w-3xl mx-auto px-4 sm:px-6 mb-8">
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      <div class="gradient-bg px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <i class="fas fa-cogs text-white text-sm" style="animation:spin 2s linear infinite"></i>
+            </div>
+            <span class="text-white font-bold">Scraping Progress</span>
+          </div>
+          <span class="text-white font-black text-2xl" id="progress-pct">0%</span>
+        </div>
+        <div class="mt-3 w-full bg-white/20 rounded-full h-2.5">
+          <div id="progress-bar" class="progress-bar bg-white h-2.5 rounded-full" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="p-6">
+        <p class="text-sm font-semibold text-gray-700 mb-4" id="progress-status">Starting...</p>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="text-center p-3 bg-indigo-50 rounded-2xl">
+            <div class="text-2xl font-black text-indigo-600" id="stat-products">0</div>
+            <div class="text-xs text-gray-400 mt-1"><i class="fas fa-box mr-1"></i>Products</div>
+          </div>
+          <div class="text-center p-3 bg-purple-50 rounded-2xl">
+            <div class="text-2xl font-black text-purple-600" id="stat-page">-</div>
+            <div class="text-xs text-gray-400 mt-1"><i class="fas fa-file mr-1"></i>Page</div>
+          </div>
+          <div class="text-center p-3 bg-blue-50 rounded-2xl">
+            <div class="text-2xl font-black text-blue-600" id="stat-images">0</div>
+            <div class="text-xs text-gray-400 mt-1"><i class="fas fa-image mr-1"></i>Images</div>
+          </div>
+        </div>
+        <div id="current-product-row" class="hidden mb-4 px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+          <div class="text-xs text-indigo-500 font-bold uppercase tracking-wider mb-1">Currently Processing</div>
+          <div class="text-sm text-indigo-800 font-semibold truncate" id="current-product-name"></div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3 max-h-36 overflow-y-auto" id="progress-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopify Scraped Stores -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-black text-gray-900">Scraped Stores</h2>
+        <p class="text-sm text-gray-400 mt-0.5">Click any store to explore its products</p>
+      </div>
+      <button onclick="loadStores()" class="btn flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600 shadow-sm">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+    <div id="stores-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full flex flex-col items-center justify-center py-24 text-gray-400">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <i class="fas fa-store text-3xl text-gray-300"></i>
+        </div>
+        <p class="text-lg font-semibold">No stores scraped yet</p>
+        <p class="text-sm mt-1">Enter a Shopify URL above to get started</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /#view-home -->
+
+<!-- ═══════ DASHBOARD VIEW ═══════ -->
+<div id="view-dashboard" class="hidden">
+  <div class="bg-white border-b border-gray-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center gap-4">
+      <button onclick="showMainView('home')" class="btn flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:text-indigo-600">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <div class="h-6 w-px bg-gray-200"></div>
+      <div>
+        <div class="font-black text-gray-900 text-xl" id="dash-store-name">Store</div>
+        <div class="text-sm text-gray-400" id="dash-store-domain">domain.com</div>
+      </div>
+      </div>
+      <div class="ml-auto flex gap-2 flex-wrap">
+        <button id="export-filtered-btn" onclick="exportFilteredCSV()" class="hidden btn flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 border border-indigo-600 rounded-xl text-sm font-semibold text-white transition-all shadow-md">
+          <i class="fas fa-filter"></i><i class="fas fa-file-csv ml-0.5"></i> Export Filtered
+        </button>
+        <button onclick="showExportSettings()" class="btn flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700">
+          <i class="fas fa-file-csv"></i> Export All CSV
+        </button>
+        <button onclick="exportByCategory()" class="btn flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all">
+          <i class="fas fa-layer-group"></i> Export by Category (Auto-split)
+        </button>
+        <button onclick="exportJSON()" class="btn flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700">
+          <i class="fas fa-file-code"></i> JSON
+        </button>
+      </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 gradient-bg opacity-10 rounded-bl-3xl"></div>
+        <div class="text-3xl font-black text-indigo-600 mb-1" id="stat-total-products">-</div>
+        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><i class="fas fa-box mr-1"></i>Total Products</div>
+      </div>
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 opacity-10 rounded-bl-3xl"></div>
+        <div class="text-3xl font-black text-purple-600 mb-1" id="stat-total-variants">-</div>
+        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><i class="fas fa-layer-group mr-1"></i>Variants</div>
+      </div>
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 gradient-bg-3 opacity-10 rounded-bl-3xl"></div>
+        <div class="text-3xl font-black text-blue-600 mb-1" id="stat-total-images">-</div>
+        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><i class="fas fa-images mr-1"></i>Images</div>
+      </div>
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 gradient-bg-4 opacity-10 rounded-bl-3xl"></div>
+        <div class="text-3xl font-black text-green-600 mb-1" id="stat-avg-price">-</div>
+        <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider"><i class="fas fa-tag mr-1"></i>Avg Price</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-2 mb-2"><div class="w-8 h-8 gradient-bg-4 rounded-lg flex items-center justify-center"><i class="fas fa-dollar-sign text-white text-sm"></i></div><span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Price Range</span></div>
+        <div class="text-lg font-black text-gray-800" id="stat-price-range">-</div>
+      </div>
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-2 mb-2"><div class="w-8 h-8 gradient-bg-3 rounded-lg flex items-center justify-center"><i class="fas fa-building text-white text-sm"></i></div><span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Vendors</span></div>
+        <div class="text-sm text-gray-700 font-medium" id="stat-vendors">-</div>
+      </div>
+      <div class="card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center gap-2 mb-2"><div class="w-8 h-8 gradient-bg-2 rounded-lg flex items-center justify-center"><i class="fas fa-tags text-white text-sm"></i></div><span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Product Types</span></div>
+        <div class="text-sm text-gray-700 font-medium" id="stat-product-types">-</div>
+      </div>
+    </div>
+    <!-- KEYWORD FILTER -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 mb-4 shadow-lg">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0"><i class="fas fa-filter text-white"></i></div>
+        <div><div class="text-white font-black text-base">Keyword Filter</div><div class="text-indigo-200 text-xs">Type any keyword to instantly filter by name, type, vendor or tag</div></div>
+        <button onclick="clearKeyword()" id="kw-clear-btn" class="hidden ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition-all"><i class="fas fa-times"></i> Clear</button>
+      </div>
+      <div class="relative">
+        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-indigo-300 text-base"></i>
+        <input id="search-input" type="text" placeholder="e.g. shirt, blue, Nike, hoodie, dress..."
+          class="w-full pl-11 pr-28 py-3.5 text-base bg-white rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-white/40 text-gray-800 placeholder-gray-400 font-medium shadow-inner"
+          oninput="onKeywordInput()" onkeydown="if(event.key===String.fromCharCode(13))applyFilters()" />
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <span id="kw-count" class="hidden text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full font-bold whitespace-nowrap"></span>
+          <button onclick="applyFilters()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all shadow">Search</button>
+        </div>
+      </div>
+      <div id="kw-suggestions" class="hidden flex-wrap gap-2 mt-3 items-center">
+        <span class="text-xs text-indigo-200 font-semibold">Quick tags:</span>
+        <div id="kw-tags" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </div>
+    <!-- ADVANCED FILTERS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+        <select id="filter-type" onchange="applyFilters()" class="px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400"><option value="">All Types</option></select>
+        <select id="filter-vendor" onchange="applyFilters()" class="px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400"><option value="">All Vendors</option></select>
+        <select id="filter-sort" onchange="applyFilters()" class="px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400">
+          <option value="newest">Newest First</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="name_asc">Name A-Z</option>
+        </select>
+        <div class="flex items-center gap-3 px-1">
+          <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer"><input type="radio" name="avail" value="" onchange="applyFilters()" checked class="accent-indigo-600" />All</label>
+          <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer"><input type="radio" name="avail" value="in_stock" onchange="applyFilters()" class="accent-green-600" /><span class="w-2 h-2 bg-green-500 rounded-full"></span>Stock</label>
+          <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer"><input type="radio" name="avail" value="out_of_stock" onchange="applyFilters()" class="accent-red-600" /><span class="w-2 h-2 bg-red-400 rounded-full"></span>No Stock</label>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <span id="active-keyword-badge" class="hidden items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold">
+          <i class="fas fa-filter text-xs"></i><span id="active-keyword-text"></span>
+          <button onclick="clearKeyword()" class="ml-1 hover:text-red-500 transition-colors"><i class="fas fa-times"></i></button>
+        </span>
+        <div class="ml-auto text-sm font-bold text-gray-500" id="results-count"></div>
+      </div>
+    </div>
+    <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8"></div>
+    <div id="pagination" class="flex justify-center gap-2 mb-10"></div>
+  </div>
+</div><!-- /#view-dashboard -->
+
+<!-- ═══════ WOOCOMMERCE VIEW ═══════ -->
+<div id="view-woo" class="hidden">
+  <div class="relative overflow-hidden bg-gradient-to-br from-purple-700 via-purple-600 to-indigo-700 py-14">
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white rounded-full filter blur-3xl"></div>
+    </div>
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 py-4 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full mb-4 text-white text-sm font-semibold">
+        <i class="fab fa-wordpress"></i>WooCommerce Store API — No Auth Required
+      </div>
+      <h1 class="text-5xl font-black text-white mb-3 leading-tight">
+        Scrape Any<br><span class="text-purple-200">WooCommerce Store</span>
+      </h1>
+      <p class="text-purple-100 text-lg max-w-xl mx-auto mb-5">
+        Extracts products via the public Store API — no Consumer Key needed for compatible stores.
+      </p>
+      <div class="flex flex-wrap justify-center gap-2">
+        <span class="text-xs text-purple-200 font-semibold self-center">Free stores to try:</span>
+        <button onclick="fillWooUrl(this)" data-url="https://www.yithemes.com" class="text-xs px-3 py-1.5 bg-white/20 border border-white/30 text-white rounded-lg hover:bg-white/30 font-semibold transition-all">yithemes.com</button>
+        <button onclick="fillWooUrl(this)" data-url="https://storeapps.org" class="text-xs px-3 py-1.5 bg-white/20 border border-white/30 text-white rounded-lg hover:bg-white/30 font-semibold transition-all">storeapps.org</button>
+        <button onclick="fillWooUrl(this)" data-url="https://www.pluginhive.com" class="text-xs px-3 py-1.5 bg-white/20 border border-white/30 text-white rounded-lg hover:bg-white/30 font-semibold transition-all">pluginhive.com</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-8">
+      <div class="p-6 border-b border-gray-100">
+        <h2 class="font-black text-gray-900 text-lg flex items-center gap-2">
+          <i class="fab fa-wordpress text-purple-600"></i> Enter WooCommerce Store URL
+        </h2>
+        <p class="text-sm text-gray-400 mt-1">Tries Store API first (no auth), then HTML scraping as fallback. For private stores, add API keys below.</p>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 p-2 bg-gray-50 rounded-2xl border border-gray-200">
+          <div class="flex-1 flex items-center gap-3 px-4">
+            <i class="fab fa-wordpress text-purple-400 text-lg"></i>
+            <input id="woo-url-input" type="url" placeholder="https://yourwoostore.com"
+              autocomplete="off" spellcheck="false"
+              class="flex-1 py-3 text-base bg-transparent border-0 focus:outline-none text-gray-800 placeholder-gray-400"
+              onkeydown="if(event.key==='Enter') startWooScrape()" />
+          </div>
+          <button id="woo-scrape-btn" onclick="startWooScrape()"
+            class="btn px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 text-base whitespace-nowrap">
+            <i class="fas fa-search mr-2"></i>Scrape Store
+          </button>
+          <button id="woo-stop-btn" onclick="stopWooScrape()"
+            class="hidden btn px-8 py-3 bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold rounded-xl shadow-lg text-base whitespace-nowrap">
+            <i class="fas fa-stop mr-2"></i>Stop
+          </button>
+        </div>
+        <details class="bg-purple-50 rounded-2xl border border-purple-100 overflow-hidden">
+          <summary class="px-5 py-3 text-sm font-semibold text-purple-700 cursor-pointer hover:bg-purple-100 flex items-center gap-2">
+            <i class="fas fa-key"></i>Optional: Consumer Key + Secret (for private stores)
+          </summary>
+          <div class="px-5 pb-5 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Consumer Key</label>
+              <input id="woo-ck" type="text" placeholder="ck_xxxxxxxxxxxxxxxx" class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white font-mono focus:border-purple-400 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Consumer Secret</label>
+              <input id="woo-cs" type="password" placeholder="cs_xxxxxxxxxxxxxxxx" class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white font-mono focus:border-purple-400 focus:outline-none" />
+            </div>
+            <div class="sm:col-span-2 text-xs text-gray-400 bg-white rounded-xl p-3 border border-gray-100">
+              <i class="fas fa-info-circle text-purple-400 mr-1"></i>
+              Get keys: <strong>WooCommerce &rarr; Settings &rarr; Advanced &rarr; REST API &rarr; Add Key</strong> (Read permission)
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- WooCommerce Progress -->
+    <div id="woo-progress-section" class="hidden bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden mb-8">
+      <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <i class="fab fa-wordpress text-white"></i>
+            </div>
+            <span class="text-white font-bold">Scraping Progress</span>
+          </div>
+          <span class="text-white font-black text-2xl" id="woo-progress-pct">0%</span>
+        </div>
+        <div class="w-full bg-white/20 rounded-full h-2.5">
+          <div id="woo-progress-bar" class="progress-bar bg-white h-2.5 rounded-full" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="p-6">
+        <p class="text-sm font-semibold text-gray-700 mb-4" id="woo-progress-status">Starting...</p>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="text-center p-3 bg-purple-50 rounded-2xl"><div class="text-2xl font-black text-purple-600" id="woo-stat-products">0</div><div class="text-xs text-gray-400 mt-1"><i class="fas fa-box mr-1"></i>Products</div></div>
+          <div class="text-center p-3 bg-indigo-50 rounded-2xl"><div class="text-2xl font-black text-indigo-600" id="woo-stat-page">-</div><div class="text-xs text-gray-400 mt-1"><i class="fas fa-file mr-1"></i>Page</div></div>
+          <div class="text-center p-3 bg-blue-50 rounded-2xl"><div class="text-2xl font-black text-blue-600" id="woo-stat-images">0</div><div class="text-xs text-gray-400 mt-1"><i class="fas fa-image mr-1"></i>Images</div></div>
+        </div>
+        <div id="woo-current-row" class="hidden mb-4 px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-100">
+          <div class="text-xs text-purple-500 font-bold uppercase tracking-wider mb-1">Currently Processing</div>
+          <div class="text-sm text-purple-800 font-semibold truncate" id="woo-current-name"></div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3 max-h-36 overflow-y-auto" id="woo-progress-log"></div>
+      </div>
+    </div>
+
+    <!-- WooCommerce Stores Grid -->
+    <div class="flex items-center justify-between mb-6">
+      <div><h2 class="text-2xl font-black text-gray-900">Scraped WooCommerce Stores</h2><p class="text-sm text-gray-400 mt-0.5">Click to explore products</p></div>
+      <button onclick="loadWooStores()" class="btn flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:text-purple-600 shadow-sm">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+    <div id="woo-stores-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-16">
+      <div class="col-span-full flex flex-col items-center justify-center py-24 text-gray-400">
+        <div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mb-4"><i class="fab fa-wordpress text-3xl text-purple-300"></i></div>
+        <p class="text-lg font-semibold">No WooCommerce stores scraped yet</p>
+        <p class="text-sm mt-1">Enter a WooCommerce URL above to get started</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /#view-woo -->
+
+<!-- ═══════ PUBLISHER VIEW ═══════ -->
+<div id="view-publisher" class="hidden">
+  <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 py-12">
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full mb-4 text-white text-sm font-semibold"><i class="fas fa-rocket"></i>Publisher Agent</div>
+      <h1 class="text-4xl font-black text-white mb-3">Publish Products to Your Store</h1>
+      <p class="text-emerald-100 text-lg max-w-xl mx-auto">Copy an entire scraped store's catalog to your Shopify — titles, descriptions, variants, images.</p>
+    </div>
+  </div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <!-- Credentials Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center"><i class="fas fa-key text-white"></i></div>
+          <div><h2 class="font-black text-gray-900">Your Shopify Stores</h2><p class="text-sm text-gray-400">Save Admin API credentials to publish products</p></div>
+        </div>
+        <button onclick="toggleAddCredForm()" class="btn flex items-center gap-2 px-5 py-2.5 gradient-bg text-white font-bold rounded-xl shadow-lg text-sm"><i class="fas fa-plus"></i> Add Store</button>
+      </div>
+      <div id="cred-form" class="hidden p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-b border-indigo-100">
+        <h3 class="font-black text-indigo-800 mb-5 flex items-center gap-2"><i class="fas fa-shield-alt text-indigo-500"></i>Add Target Store Credentials</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div><label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">Store Label</label><input id="cred-label" type="text" placeholder="e.g. My Main Store" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400 focus:outline-none" /></div>
+          <div><label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">Shop Domain</label><input id="cred-domain" type="text" placeholder="mystore.myshopify.com" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400 focus:outline-none" /></div>
+        </div>
+        <div class="mb-5">
+          <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">Admin API Access Token</label>
+          <div class="relative">
+            <input id="cred-token" type="password" placeholder="shpat_xxxxxx" class="w-full px-4 py-3 pr-12 text-sm border border-gray-200 rounded-xl bg-white font-mono focus:border-indigo-400 focus:outline-none" />
+            <button type="button" onclick="toggleTokenVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-indigo-50"><i class="fas fa-eye" id="token-eye-icon"></i></button>
+          </div>
+        </div>
+        <div id="test-result" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3"></div>
+        <div class="flex gap-3 flex-wrap">
+          <button onclick="testCredential()" id="test-btn" class="btn flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-indigo-300 hover:bg-indigo-50 text-indigo-700 font-bold rounded-xl"><i class="fas fa-plug"></i>Test Connection</button>
+          <button onclick="saveCredential()" class="btn flex items-center gap-2 px-5 py-2.5 gradient-bg text-white font-bold rounded-xl shadow-md"><i class="fas fa-save"></i>Save Credential</button>
+          <button onclick="toggleAddCredForm()" class="btn px-5 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 font-semibold rounded-xl">Cancel</button>
+        </div>
+      </div>
+      <div class="p-6" id="credentials-list">
+        <div class="text-center py-8 text-gray-400"><i class="fas fa-key text-3xl mb-3 block opacity-30"></i><p class="font-medium">No stores added yet</p></div>
+      </div>
+    </div>
+
+    <!-- Publish Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-50 flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center"><i class="fas fa-rocket text-white"></i></div>
+        <div><h2 class="font-black text-gray-900">Publish Products</h2><p class="text-sm text-gray-400">Select source and target store, then start publishing</p></div>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider"><i class="fas fa-download mr-1 text-indigo-500"></i>Source Store (Scraped)</label>
+            <select id="pub-source-store" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400"><option value="">-- Select scraped store --</option></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider"><i class="fas fa-upload mr-1 text-emerald-500"></i>Target Store (Your Store)</label>
+            <select id="pub-target-cred" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white focus:border-indigo-400"><option value="">-- Select target store --</option></select>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button id="pub-btn" onclick="startPublish()" class="btn flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105"><i class="fas fa-rocket"></i>Start Publishing</button>
+          <button id="pub-stop-btn" onclick="stopPublish()" class="hidden btn flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold rounded-xl shadow-lg"><i class="fas fa-stop"></i>Stop</button>
+        </div>
+        <div id="pub-progress-section" class="hidden mt-6">
+          <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4">
+              <div class="flex items-center justify-between mb-2"><span class="text-white font-bold text-sm" id="pub-status">Starting...</span><span class="text-white font-black text-xl" id="pub-pct">0%</span></div>
+              <div class="w-full bg-white/20 rounded-full h-2"><div id="pub-bar" class="progress-bar bg-white h-2 rounded-full" style="width:0%"></div></div>
+            </div>
+            <div class="p-5">
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="text-center p-3 bg-white rounded-xl border border-emerald-100"><div class="text-2xl font-black text-emerald-600" id="pub-stat-done">0</div><div class="text-xs text-gray-400 mt-1">Published</div></div>
+                <div class="text-center p-3 bg-white rounded-xl border border-gray-100"><div class="text-2xl font-black text-gray-700" id="pub-stat-total">0</div><div class="text-xs text-gray-400 mt-1">Total</div></div>
+                <div class="text-center p-3 bg-white rounded-xl border border-red-100"><div class="text-2xl font-black text-red-500" id="pub-stat-failed">0</div><div class="text-xs text-gray-400 mt-1">Failed</div></div>
+              </div>
+              <div id="pub-current-row" class="hidden mb-3 px-4 py-2.5 bg-white rounded-xl border border-emerald-100"><div class="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-1">Publishing</div><div class="text-sm text-emerald-800 font-semibold truncate" id="pub-current-name"></div></div>
+              <div class="bg-white rounded-xl p-3 max-h-32 overflow-y-auto border border-emerald-50" id="pub-log"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Publish History -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+        <div class="flex items-center gap-3"><div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center"><i class="fas fa-history text-white"></i></div><h2 class="font-black text-gray-900">Publish History</h2></div>
+        <button onclick="loadPublishJobs()" class="btn text-sm text-indigo-600 hover:text-indigo-800 font-semibold"><i class="fas fa-sync-alt mr-1"></i>Refresh</button>
+      </div>
+      <div class="p-6" id="publish-history"><div class="text-center py-8 text-gray-400"><i class="fas fa-history text-3xl mb-3 block opacity-30"></i><p class="font-medium">No publish jobs yet</p></div></div>
+    </div>
+  </div>
+</div><!-- /#view-publisher -->
+
+</div><!-- /.pt-16 -->
+
+<!-- ═══════ PRODUCT MODAL ═══════ -->
+<div id="product-modal" class="fixed inset-0 z-50 hidden" onclick="if(event.target===this)closeModal()">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm fade-in"></div>
+  <div class="absolute inset-0 flex items-start justify-center p-4 pt-12 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full relative fade-in-up">
+      <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 bg-gray-100 hover:bg-red-100 hover:text-red-500 rounded-full flex items-center justify-center text-gray-500 z-10 font-bold"><i class="fas fa-times"></i></button>
+      <div class="grid grid-cols-1 md:grid-cols-2">
+        <div class="p-6 border-b md:border-b-0 md:border-r border-gray-100">
+          <div class="rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center mb-4" style="height:320px;">
+            <img id="modal-main-img" src="" alt="" class="max-w-full max-h-full object-contain" />
+          </div>
+          <div id="modal-thumbs" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="p-6 overflow-y-auto" style="max-height:80vh;">
+          <div class="inline-block text-xs text-indigo-600 font-bold uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-full mb-3" id="modal-type"></div>
+          <h2 class="text-2xl font-black text-gray-900 mb-1 leading-tight" id="modal-title"></h2>
+          <div class="text-base text-gray-500 mb-2 font-medium" id="modal-vendor"></div>
+          <div class="text-3xl font-black bg-clip-text text-transparent gradient-bg mb-4" id="modal-price"></div>
+          <div id="modal-tags" class="mb-4 flex flex-wrap gap-1"></div>
+          <p class="text-sm text-gray-600 leading-relaxed mb-6" id="modal-description"></p>
+          <div class="overflow-x-auto rounded-2xl border border-gray-100">
+            <table class="min-w-full text-sm">
+              <thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Variant</th><th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">SKU</th><th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Price</th><th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Available</th></tr></thead>
+              <tbody id="modal-variants" class="divide-y divide-gray-50"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function escHtml(s) { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function getAuthHeaders() { return { 'Content-Type': 'application/json' }; }
+function fillUrl(btn) { var u=btn.getAttribute('data-url'); var i=document.getElementById('url-input'); if(i){i.value=u;i.focus();} }
+function fillWooUrl(btn) { var u=btn.getAttribute('data-url'); var i=document.getElementById('woo-url-input'); if(i){i.value=u;i.focus();} }
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var currentStoreId = null;
+var currentStoreStats = null;
+var currentPage = 1;
+var searchTimeout = null;
+var activeJobId = null;
+var sseSource = null;
+var wooActiveJobId = null;
+var wooSSE = null;
+var activePublishJobKey = null;
+var publishSSE = null;
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  var c=document.getElementById('toast-container');
+  var t=document.createElement('div');
+  var icon={success:'check-circle',error:'times-circle',warning:'exclamation-circle',info:'info-circle'}[type]||'info-circle';
+  var color={success:'bg-green-500',error:'bg-red-500',warning:'bg-orange-500',info:'bg-indigo-500'}[type]||'bg-indigo-500';
+  t.className='toast pointer-events-auto flex items-center gap-3 px-5 py-4 '+color+' text-white rounded-2xl shadow-2xl max-w-sm';
+  t.innerHTML='<i class="fas fa-'+icon+' text-xl"></i><span class="font-semibold text-sm">'+escHtml(msg)+'</span>';
+  c.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(100%)';t.style.transition='all 0.3s ease';setTimeout(function(){t.remove();},300);},4000);
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showMainView(view) {
+  ['view-home','view-dashboard','view-woo','view-publisher'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.add('hidden');});
+  document.querySelectorAll('.nav-tab').forEach(function(b){
+    b.classList.remove('nav-active-indigo','nav-active-purple','nav-active-teal','bg-white','shadow','text-indigo-600','text-purple-600','text-teal-600');
+    b.classList.add('text-gray-500');
+  });
+  if (view==='home') {
+    document.getElementById('view-home').classList.remove('hidden');
+    var n=document.getElementById('nav-home'); if(n){n.classList.add('nav-active-indigo');n.classList.remove('text-gray-500');}
+    loadStores();
+  } else if (view==='woo') {
+    document.getElementById('view-woo').classList.remove('hidden');
+    var n=document.getElementById('nav-woo'); if(n){n.classList.add('nav-active-purple');n.classList.remove('text-gray-500');}
+    loadWooStores();
+  } else if (view==='publisher') {
+    document.getElementById('view-publisher').classList.remove('hidden');
+    var n=document.getElementById('nav-publisher'); if(n){n.classList.add('nav-active-teal');n.classList.remove('text-gray-500');}
+    loadPublisherData();
+  }
+}
+
+function showDashboard(storeId, storeName, storeDomain) {
+  currentStoreId=storeId; currentPage=1;
+  ['view-home','view-woo','view-publisher'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.add('hidden');});
+  document.getElementById('view-dashboard').classList.remove('hidden');
+  document.getElementById('dash-store-name').textContent=storeName||storeDomain;
+  document.getElementById('dash-store-domain').textContent=storeDomain;
+  loadStats(); loadProducts();
+}
+
+// ── SHOPIFY SCRAPER ───────────────────────────────────────────────────────────
+function startScrape() {
+  var url=document.getElementById('url-input').value.trim();
+  if(!url){showToast('Please enter a Shopify store URL','warning');return;}
+  var btn=document.getElementById('scrape-btn'); var stopBtn=document.getElementById('stop-btn');
+  btn.disabled=true; btn.classList.add('opacity-60','cursor-not-allowed'); stopBtn.classList.remove('hidden');
+  document.getElementById('progress-section').classList.remove('hidden');
+  document.getElementById('live-indicator').classList.remove('hidden'); document.getElementById('live-indicator').classList.add('flex');
+  document.getElementById('progress-log').innerHTML='';
+  setProgress(0,'Connecting...',0,0,'-',0,0,'');
+  if(sseSource){sseSource.close();sseSource=null;}
+  fetch('/api/scrape',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({url:url})})
+  .then(function(r){return r.json();})
+  .then(function(d){activeJobId=d.job_id;listenProgress(activeJobId);showToast('Scrape started!','success');})
+  .catch(function(e){showToast('Failed: '+e.message,'error');resetScrapeBtn();});
+}
+
+function stopScrape() {
+  if(!activeJobId)return;
+  var btn=document.getElementById('stop-btn'); btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Stopping...';
+  fetch('/api/scrape/'+activeJobId+'/stop',{method:'POST'}).catch(function(){});
+}
+
+function listenProgress(jobId) {
+  sseSource=new EventSource('/api/progress/'+jobId);
+  sseSource.onmessage=function(e){
+    var evt=JSON.parse(e.data);
+    if(evt.status==='__done__'){sseSource.close();sseSource=null;resetScrapeBtn();loadStores();return;}
+    setProgress(evt.percentage||0,evt.message||'',evt.products_found||0,evt.products_total||0,evt.page||'-',evt.images_downloaded||0,evt.images_total||0,evt.current_product||'');
+    appendLog(evt.message,evt.status,'progress-log');
+    if(evt.status==='complete'||evt.status==='error'||evt.status==='stopped'){
+      sseSource.close();sseSource=null;resetScrapeBtn();
+      if(evt.status==='complete')showToast('Scrape completed!','success');
+      if(evt.status==='stopped')showToast('Scrape stopped','info');
+      if(evt.status==='error')showToast('Error: '+evt.message,'error');
+      setTimeout(loadStores,600);
+    }
+  };
+  sseSource.onerror=function(){sseSource.close();sseSource=null;resetScrapeBtn();loadStores();};
+}
+
+function setProgress(pct,status,products,productsTotal,page,imgsDone,imgsTotal,current){
+  document.getElementById('progress-bar').style.width=Math.round(pct)+'%';
+  document.getElementById('progress-pct').textContent=Math.round(pct)+'%';
+  document.getElementById('progress-status').textContent=status;
+  document.getElementById('stat-products').textContent=(productsTotal>0)?(products+' / '+productsTotal):products;
+  document.getElementById('stat-page').textContent=page;
+  document.getElementById('stat-images').textContent=(imgsTotal>0)?(imgsDone+' / '+imgsTotal):imgsDone;
+  var row=document.getElementById('current-product-row');
+  if(current){row.classList.remove('hidden');document.getElementById('current-product-name').textContent=current;}
+  else{row.classList.add('hidden');}
+}
+
+function appendLog(msg,status,logId){
+  if(!msg)return;
+  var log=document.getElementById(logId||'progress-log');
+  if(!log)return;
+  var color=status==='error'?'text-red-600':status==='complete'?'text-green-600':status==='stopped'?'text-orange-600':'text-gray-600';
+  var icon=status==='error'?'times-circle':status==='complete'?'check-circle':status==='stopped'?'pause-circle':'info-circle';
+  var div=document.createElement('div');
+  div.className='flex items-start gap-2 text-xs '+color+' py-1 px-2 rounded-lg bg-white/50';
+  div.innerHTML='<i class="fas fa-'+icon+' mt-0.5"></i><span class="font-medium">'+escHtml(msg)+'</span>';
+  log.appendChild(div); log.scrollTop=log.scrollHeight;
+}
+
+function resetScrapeBtn(){
+  var btn=document.getElementById('scrape-btn'); var stop=document.getElementById('stop-btn');
+  btn.disabled=false; btn.classList.remove('opacity-60','cursor-not-allowed');
+  stop.classList.add('hidden'); stop.disabled=false; stop.innerHTML='<i class="fas fa-stop mr-2"></i>Stop';
+  document.getElementById('live-indicator').classList.add('hidden');
+  activeJobId=null;
+}
+
+// ── STORES ────────────────────────────────────────────────────────────────────
+function loadStores(){
+  console.log('[loadStores] Loading stores...');
+  var grid=document.getElementById('stores-grid');
+  if (!grid) {
+    console.error('[loadStores] stores-grid element not found!');
+    return;
+  }
+  grid.innerHTML=[1,2,3].map(function(){return '<div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"><div class="skeleton h-4 rounded mb-3 w-3/4"></div><div class="skeleton h-3 rounded mb-4 w-1/2"></div><div class="grid grid-cols-3 gap-2 mb-3">'+[1,2,3].map(function(){return '<div class="skeleton h-12 rounded-xl"></div>';}).join('')+'</div><div class="skeleton h-8 rounded-xl"></div></div>';}).join('');
+  console.log('[loadStores] Fetching /api/stores...');
+  fetch('/api/stores').then(function(r){
+    console.log('[loadStores] Response status:', r.status);
+    return r.json();
+  })
+  .then(function(stores){
+    console.log('[loadStores] Received', stores.length, 'stores:', stores);
+    if(!stores.length){
+      grid.innerHTML='<div class="col-span-full flex flex-col items-center justify-center py-24 text-gray-400"><div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4"><i class="fas fa-store text-3xl text-gray-300"></i></div><p class="text-lg font-semibold">No stores scraped yet</p><p class="text-sm mt-1">Enter a Shopify URL above</p></div>';
+      return;
+    }
+    grid.innerHTML=stores.map(storeCard).join('');
+    console.log('[loadStores] Stores rendered successfully!');
+  }).catch(function(err){
+    console.error('[loadStores] Error:', err);
+    grid.innerHTML='<div class="col-span-full text-center text-red-400 py-8">Failed to load stores: '+err.message+'</div>';
+  });
+}
+
+function storeCard(s){
+  var date=s.scraped_at?new Date(s.scraped_at).toLocaleDateString():'In progress';
+  var sc={complete:'bg-green-100 text-green-700',scraping:'bg-yellow-100 text-yellow-700',stopped:'bg-orange-100 text-orange-700',error:'bg-red-100 text-red-700',pending:'bg-gray-100 text-gray-500'}[s.scrape_status]||'bg-gray-100 text-gray-500';
+  return '<div class="card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">'+
+    '<div class="h-1.5 gradient-bg"></div><div class="p-5">'+
+    '<div class="flex items-start justify-between mb-3"><div><div class="font-black text-gray-900 text-base truncate max-w-[150px]">'+escHtml(s.name||s.domain)+'</div><div class="text-xs text-gray-400 truncate max-w-[150px]">'+escHtml(s.domain)+'</div></div>'+
+    '<span class="text-xs px-2.5 py-1 rounded-full font-bold '+sc+'">'+s.scrape_status+'</span></div>'+
+    '<div class="grid grid-cols-3 gap-2 mb-4">'+
+    '<div class="text-center p-2.5 bg-indigo-50 rounded-xl"><div class="font-black text-indigo-600">'+(s.total_products||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Products</div></div>'+
+    '<div class="text-center p-2.5 bg-purple-50 rounded-xl"><div class="font-black text-purple-600">'+(s.total_variants||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Variants</div></div>'+
+    '<div class="text-center p-2.5 bg-blue-50 rounded-xl"><div class="font-black text-blue-600">'+(s.total_images||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Images</div></div></div>'+
+    '<div class="text-xs text-gray-400 mb-3"><i class="fas fa-clock mr-1"></i>'+date+'</div>'+
+    '<button onclick="showDashboard('+s.id+',\''+escHtml(s.name||s.domain)+'\',\''+escHtml(s.domain)+'\')" class="btn w-full py-2.5 gradient-bg text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:scale-105 mb-2"><i class="fas fa-chart-bar mr-2"></i>View Dashboard</button>'+
+    '<div class="grid grid-cols-3 gap-1.5">'+
+    '<button onclick="rescrapeStore(\''+escHtml(s.original_url||s.domain)+'\')" class="btn py-2 border border-gray-200 hover:bg-indigo-50 text-xs font-semibold text-gray-600 hover:text-indigo-600 rounded-lg"><i class="fas fa-redo mr-1"></i>Re-scrape</button>'+
+    '<a href="#" onclick="exportStoreCSV('+s.id+');return false;" class="btn py-2 border border-gray-200 hover:bg-green-50 text-xs font-semibold text-gray-600 hover:text-green-600 rounded-lg text-center"><i class="fas fa-file-csv mr-1"></i>CSV</a>'+
+    '<button onclick="deleteStore('+s.id+',\''+escHtml(s.domain)+'\')" class="btn py-2 border border-red-100 hover:bg-red-50 text-xs font-semibold text-red-400 hover:text-red-600 rounded-lg"><i class="fas fa-trash mr-1"></i>Del</button>'+
+    '</div></div></div>';
+}
+
+function rescrapeStore(url){document.getElementById('url-input').value=url;showMainView('home');window.scrollTo({top:0,behavior:'smooth'});setTimeout(startScrape,300);}
+function deleteStore(id,domain){
+  if(!confirm('Delete all data for "'+domain+'"?'))return;
+  fetch('/api/stores/'+id,{method:'DELETE'}).then(function(){showToast('Store deleted','info');loadStores();loadWooStores();});
+}
+function exportStoreCSV(id){window.location='/api/stores/'+id+'/export/csv';}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function loadStats(){
+  fetch('/api/stores/'+currentStoreId+'/stats').then(function(r){return r.json();})
+  .then(function(s){
+    // Store stats globally for export estimation
+    currentStoreStats=s;
+    
+    animateNumber('stat-total-products',s.total_products||0);
+    animateNumber('stat-total-variants',s.total_variants||0);
+    animateNumber('stat-total-images',s.total_images||0);
+    document.getElementById('stat-avg-price').textContent='$'+(s.avg_price||0).toFixed(2);
+    document.getElementById('stat-price-range').textContent='$'+(s.min_price||0).toFixed(2)+' — $'+(s.max_price||0).toFixed(2);
+    document.getElementById('stat-vendors').textContent=s.vendors.length?s.vendors.slice(0,6).join(', ')+(s.vendors.length>6?'…':''):'—';
+    document.getElementById('stat-product-types').textContent=s.product_types.length?s.product_types.slice(0,6).join(', ')+(s.product_types.length>6?'…':''):'—';
+    document.getElementById('filter-type').innerHTML='<option value="">All Types</option>'+s.product_types.map(function(t){return '<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>';}).join('');
+    document.getElementById('filter-vendor').innerHTML='<option value="">All Vendors</option>'+s.vendors.map(function(v){return '<option value="'+escHtml(v)+'">'+escHtml(v)+'</option>';}).join('');
+
+  }).catch(function(){});
+}
+
+function animateNumber(id,target){
+  var el=document.getElementById(id); var start=0; var step=Math.ceil(target/(800/16));
+  var timer=setInterval(function(){start=Math.min(start+step,target);el.textContent=start.toLocaleString();if(start>=target)clearInterval(timer);},16);
+}
+
+function applyFilters(){
+  currentPage=1;
+  var kw=document.getElementById('search-input').value.trim();
+  var type=document.getElementById('filter-type').value;
+  var vendor=document.getElementById('filter-vendor').value;
+  var avail=(document.querySelector('input[name="avail"]:checked')||{}).value||'';
+  var hasFilter=!!(kw||type||vendor||avail);
+
+  // Active keyword badge
+  var badge=document.getElementById('active-keyword-badge');
+  var badgeText=document.getElementById('active-keyword-text');
+  var clearBtn=document.getElementById('kw-clear-btn');
+  if(kw){
+    if(badge){badge.classList.remove('hidden');badge.classList.add('flex');}
+    if(badgeText)badgeText.textContent=kw;
+    if(clearBtn)clearBtn.classList.remove('hidden');
+  } else {
+    if(badge){badge.classList.add('hidden');badge.classList.remove('flex');}
+    if(!hasFilter&&clearBtn)clearBtn.classList.add('hidden');
+  }
+
+  // Show/hide Export Filtered button
+  var exportBtn=document.getElementById('export-filtered-btn');
+  if(exportBtn){
+    if(hasFilter){exportBtn.classList.remove('hidden');}
+    else{exportBtn.classList.add('hidden');}
+  }
+
+  loadProducts();
+}
+
+
+function onKeywordInput(){
+  clearTimeout(searchTimeout);
+  searchTimeout=setTimeout(applyFilters,350);
+}
+
+function clearKeyword(){
+  var inp=document.getElementById('search-input');
+  if(inp)inp.value='';
+  var kwc=document.getElementById('kw-count');if(kwc)kwc.classList.add('hidden');
+  applyFilters();
+}
+
+function quickKeyword(btn){
+  var kw=btn.textContent.trim();
+  var inp=document.getElementById('search-input');
+  if(inp){inp.value=kw;}
+  applyFilters();
+  window.scrollTo({top:300,behavior:'smooth'});
+}
+
+function debouncedSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(applyFilters,400);}
+
+function loadProducts(){
+  var grid=document.getElementById('products-grid');
+  grid.innerHTML=Array(10).fill('<div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm"><div class="skeleton h-44"></div><div class="p-3"><div class="skeleton h-3 rounded mb-2 w-2/3"></div><div class="skeleton h-4 rounded mb-2"></div><div class="skeleton h-3 rounded w-1/2"></div></div></div>').join('');
+  var search=document.getElementById('search-input').value.trim();
+  var type=document.getElementById('filter-type').value;
+  var vendor=document.getElementById('filter-vendor').value;
+  var sort=document.getElementById('filter-sort').value;
+  var avail=(document.querySelector('input[name="avail"]:checked')||{}).value||'';
+  var params='page='+currentPage+'&page_size=24&sort_by='+encodeURIComponent(sort);
+  if(search)params+='&search='+encodeURIComponent(search);
+  if(type)params+='&product_type='+encodeURIComponent(type);
+  if(vendor)params+='&vendor='+encodeURIComponent(vendor);
+  if(avail)params+='&availability='+encodeURIComponent(avail);
+  fetch('/api/stores/'+currentStoreId+'/products?'+params)
+  .then(function(r){return r.json();})
+  .then(function(data){
+    document.getElementById('results-count').textContent=data.total.toLocaleString()+' product'+(data.total!==1?'s':'');
+    var kwc=document.getElementById('kw-count');
+    var kwVal=document.getElementById('search-input').value.trim();
+    if(kwc){
+      if(kwVal){kwc.textContent=data.total.toLocaleString()+' found';kwc.classList.remove('hidden');}
+      else{kwc.classList.add('hidden');}
+    }
+    // Update keyword count badge inside search box
+    var kwCount=document.getElementById('kw-count');
+    var kw=document.getElementById('search-input').value.trim();
+    if(kwCount){
+      if(kw&&data.total>=0){kwCount.textContent=data.total.toLocaleString()+' found';kwCount.classList.remove('hidden');}
+      else{kwCount.classList.add('hidden');}
+    }
+    if(!data.products.length){grid.innerHTML='<div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-400"><i class="fas fa-search text-5xl mb-4 opacity-30"></i><p class="text-xl font-bold mb-2">No products found</p><p class="text-sm">Try adjusting your filters</p></div>';document.getElementById('pagination').innerHTML='';return;}
+    grid.innerHTML=data.products.map(productCard).join('');
+    renderPagination(data.page,data.pages);
+  }).catch(function(){grid.innerHTML='<div class="col-span-full text-center py-12 text-red-400">Failed to load products</div>';});
+}
+
+function productCard(p){
+  var imgSrc=p.thumbnail?p.thumbnail:'';
+  var imgEl=imgSrc?'<img src="'+imgSrc+'" alt="'+escHtml(p.title)+'" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.parentElement.innerHTML=\'<div class=\\\"w-full h-full flex items-center justify-center text-gray-200\\\"><i class=\\\"fas fa-image text-4xl\\\"></i></div>\'">':'<div class="w-full h-full flex items-center justify-center text-gray-200"><i class="fas fa-image text-4xl"></i></div>';
+  var badge=p.in_stock?'<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>In Stock</span>':'<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold"><span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span>Sold Out</span>';
+  var price=(p.price_min===p.price_max)?'$'+(p.price_min||0).toFixed(2):'$'+(p.price_min||0).toFixed(2)+' - $'+(p.price_max||0).toFixed(2);
+  return '<div class="group card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer" onclick="openProduct('+p.id+')">'+
+    '<div class="overflow-hidden bg-gray-50" style="height:180px;">'+imgEl+'</div>'+
+    '<div class="p-3"><div class="text-xs text-indigo-500 font-bold truncate">'+escHtml(p.vendor||'')+'</div>'+
+    '<div class="text-sm font-bold text-gray-900 mt-0.5 leading-tight mb-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+escHtml(p.title)+'</div>'+
+    '<div class="flex items-center justify-between mt-2"><span class="text-sm font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">'+price+'</span>'+badge+'</div>'+
+    '<div class="text-xs text-gray-400 mt-1"><i class="fas fa-layer-group mr-1"></i>'+p.variant_count+' variant'+(p.variant_count!==1?'s':'')+'</div></div></div>';
+}
+
+function renderPagination(page,pages){
+  var el=document.getElementById('pagination'); if(pages<=1){el.innerHTML='';return;}
+  var html=''; var base='btn w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all';
+  if(page>1)html+='<button class="'+base+' bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-gray-600 shadow-sm" onclick="goPage('+(page-1)+')"><i class="fas fa-chevron-left text-xs"></i></button>';
+  var start=Math.max(1,page-2),end=Math.min(pages,page+2);
+  if(start>1){html+='<button class="'+base+' bg-white border border-gray-200 text-gray-600 shadow-sm" onclick="goPage(1)">1</button>';if(start>2)html+='<span class="flex items-center justify-center w-9 text-gray-400">...</span>';}
+  for(var i=start;i<=end;i++){if(i===page)html+='<button class="'+base+' gradient-bg text-white shadow-lg">'+i+'</button>';else html+='<button class="'+base+' bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-gray-600 shadow-sm" onclick="goPage('+i+')">'+i+'</button>';}
+  if(end<pages){if(end<pages-1)html+='<span class="flex items-center justify-center w-9 text-gray-400">...</span>';html+='<button class="'+base+' bg-white border border-gray-200 text-gray-600 shadow-sm" onclick="goPage('+pages+')">'+pages+'</button>';}
+  if(page<pages)html+='<button class="'+base+' bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 text-gray-600 shadow-sm" onclick="goPage('+(page+1)+')"><i class="fas fa-chevron-right text-xs"></i></button>';
+  el.innerHTML=html;
+}
+function goPage(pg){currentPage=pg;loadProducts();window.scrollTo({top:0,behavior:'smooth'});}
+
+// ── PRODUCT MODAL ─────────────────────────────────────────────────────────────
+function openProduct(productId){
+  fetch('/api/stores/'+currentStoreId+'/products/'+productId)
+  .then(function(r){return r.json();})
+  .then(function(p){
+    document.getElementById('modal-type').textContent=p.product_type||'';
+    document.getElementById('modal-type').classList.toggle('hidden',!p.product_type);
+    document.getElementById('modal-title').textContent=p.title;
+    document.getElementById('modal-vendor').textContent=p.vendor?'by '+p.vendor:'';
+    var price=(p.price_min===p.price_max)?'$'+(p.price_min||0).toFixed(2):'$'+(p.price_min||0).toFixed(2)+' - $'+(p.price_max||0).toFixed(2);
+    document.getElementById('modal-price').textContent=price;
+    var tags=(p.tags||'').split(',').map(function(t){return t.trim();}).filter(Boolean);
+    document.getElementById('modal-tags').innerHTML=tags.map(function(t){return '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">'+escHtml(t)+'</span>';}).join('');
+    document.getElementById('modal-description').textContent=p.description||'';
+    var mainImg=document.getElementById('modal-main-img'); var thumbsEl=document.getElementById('modal-thumbs');
+    if(p.images&&p.images.length){
+      var firstSrc=p.images[0].original_src||'';
+      mainImg.src=firstSrc; mainImg.onerror=function(){mainImg.src=p.images[0].original_src;};
+      thumbsEl.innerHTML=p.images.map(function(img,idx){
+        var src=img.original_src||'';
+        return '<img src="'+src+'" class="w-14 h-14 object-cover rounded-xl cursor-pointer border-2 transition-all hover:scale-110 '+(idx===0?'border-indigo-500 shadow-md':'border-transparent hover:border-indigo-300')+'" onclick="selectThumb(this,\''+src+'\',\''+img.original_src+'\')" onerror="this.src=\''+img.original_src+'\'">';
+      }).join('');
+    } else { mainImg.src=''; thumbsEl.innerHTML='<div class="text-sm text-gray-400">No images</div>'; }
+    document.getElementById('modal-variants').innerHTML=(p.variants||[]).map(function(v){
+      var avail=v.available?'<span class="text-green-600 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>Yes</span>':'<span class="text-red-400 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span>No</span>';
+      return '<tr class="hover:bg-gray-50"><td class="px-3 py-2 text-gray-700 font-medium">'+escHtml(v.title||'—')+'</td><td class="px-3 py-2 text-gray-400 font-mono text-xs">'+escHtml(v.sku||'—')+'</td><td class="px-3 py-2 font-black text-gray-900">$'+(v.price||0).toFixed(2)+'</td><td class="px-3 py-2">'+avail+'</td></tr>';
+    }).join('');
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.body.style.overflow='hidden';
+  }).catch(function(){showToast('Failed to load product','error');});
+}
+
+function selectThumb(el,localSrc,origSrc){
+  document.querySelectorAll('#modal-thumbs img').forEach(function(t){t.classList.remove('border-indigo-500','shadow-md');t.classList.add('border-transparent');});
+  el.classList.add('border-indigo-500','shadow-md');el.classList.remove('border-transparent');
+  var main=document.getElementById('modal-main-img');
+  main.style.opacity='0';
+  setTimeout(function(){main.src=localSrc;main.onerror=function(){main.src=origSrc;};main.style.opacity='1';main.style.transition='opacity 0.3s';},150);
+}
+function closeModal(){document.getElementById('product-modal').classList.add('hidden');document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+
+// ── EXPORTS ─────────────────────────────────────────────────────────────────
+function getFilterParams(){
+  var search=document.getElementById('search-input').value.trim();
+  var type=document.getElementById('filter-type').value;
+  var vendor=document.getElementById('filter-vendor').value;
+  var sort=document.getElementById('filter-sort').value;
+  var avail=(document.querySelector('input[name="avail"]:checked')||{}).value||'';
+  return {search:search,product_type:type,vendor:vendor,sort_by:sort,availability:avail};
+}
+
+function buildFilterQueryString(params){
+  var q=[];
+  if(params.search)q.push('search='+encodeURIComponent(params.search));
+  if(params.product_type)q.push('product_type='+encodeURIComponent(params.product_type));
+  if(params.vendor)q.push('vendor='+encodeURIComponent(params.vendor));
+  if(params.availability)q.push('availability='+encodeURIComponent(params.availability));
+  if(params.sort_by)q.push('sort_by='+encodeURIComponent(params.sort_by));
+  return q.length?'?'+q.join('&'):'';
+}
+
+function isFiltered(){
+  var p=getFilterParams();
+  return !!(p.search||p.product_type||p.vendor||p.availability);
+}
+
+// ── EXPORT SETTINGS ───────────────────────────────────────────────────────────
+function showExportSettings(){
+  var modal = document.getElementById('export-settings-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  updateExportPreview();
+}
+
+function closeExportSettings(){
+  var modal = document.getElementById('export-settings-modal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+}
+
+function resetExportSettings(){
+  document.getElementById('export-vendor').value = 'Luxury Wardrobe';
+  document.getElementById('export-price-adjust-type').value = 'percentage';
+  document.getElementById('export-price-adjust-percentage').value = '-15';
+  document.getElementById('export-price-adjust-fixed').value = '-1';
+  document.getElementById('export-inventory').value = '300';
+  document.getElementById('export-whatsapp').value = '12363148438';
+  document.getElementById('export-return-policy').value = 'within 7 days';
+  document.getElementById('export-status').value = 'Active';
+  updatePriceAdjustOptions();
+  updateExportPreview();
+}
+
+function updatePriceAdjustOptions(){
+  var adjustType = document.getElementById('export-price-adjust-type').value;
+  var percentageDiv = document.getElementById('percentage-options');
+  var fixedDiv = document.getElementById('fixed-options');
+  
+  if (adjustType === 'fixed') {
+    percentageDiv.style.display = 'none';
+    fixedDiv.style.display = 'block';
+  } else {
+    percentageDiv.style.display = 'block';
+    fixedDiv.style.display = 'none';
+  }
+  updateExportPreview();
+}
+
+function updateExportPreview(){
+  var vendor = document.getElementById('export-vendor').value || 'Original vendor names';
+  var adjustType = document.getElementById('export-price-adjust-type').value;
+  var priceAdjust;
+  var inventory = document.getElementById('export-inventory').value || 'Original quantities';
+  
+  if (adjustType === 'fixed') {
+    priceAdjust = parseFloat(document.getElementById('export-price-adjust-fixed').value || 0);
+  } else {
+    priceAdjust = parseInt(document.getElementById('export-price-adjust-percentage').value || 0);
+  }
+  
+  document.getElementById('preview-vendor').textContent = vendor;
+  
+  var originalPrice = 100;
+  var newPrice;
+  var priceText;
+  
+  if (adjustType === 'fixed') {
+    newPrice = originalPrice + priceAdjust;
+    priceText = '$' + newPrice.toFixed(2);
+    if (priceAdjust < 0) {
+      priceText += ' ($' + Math.abs(priceAdjust).toFixed(2) + ' off)';
+      document.getElementById('preview-price').className = 'text-green-600 font-bold';
+    } else if (priceAdjust > 0) {
+      priceText += ' (+$' + priceAdjust.toFixed(2) + ')';
+      document.getElementById('preview-price').className = 'text-red-600 font-bold';
+    } else {
+      priceText = 'No change';
+      document.getElementById('preview-price').className = 'text-gray-600 font-bold';
+    }
+  } else {
+    newPrice = originalPrice * (1 + priceAdjust/100);
+    priceText = '$' + newPrice.toFixed(2);
+    if (priceAdjust < 0) {
+      priceText += ' (' + Math.abs(priceAdjust) + '% off)';
+      document.getElementById('preview-price').className = 'text-green-600 font-bold';
+    } else if (priceAdjust > 0) {
+      priceText += ' (+' + priceAdjust + '%)';
+      document.getElementById('preview-price').className = 'text-red-600 font-bold';
+    } else {
+      priceText = 'No change';
+      document.getElementById('preview-price').className = 'text-gray-600 font-bold';
+    }
+  }
+  
+  document.getElementById('preview-price').textContent = priceText;
+  document.getElementById('preview-inventory').textContent = inventory + ' units';
+}
+
+// Update preview when settings change - attach after DOM ready
+function attachSettingsListeners(){
+  ['export-vendor','export-price-adjust-percentage','export-price-adjust-fixed','export-price-adjust-type','export-inventory'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.addEventListener('input',updateExportPreview);el.addEventListener('change',updateExportPreview);}
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+showMainView('home');
+attachSettingsListeners();
+
+function startExportWithSettings(){
+  closeExportSettings();
+  exportCSV();
+}
+
+function exportCSV(){
+  if(!currentStoreId)return;
+  if(isFiltered()){
+    if(!confirm('A filter is active. Click OK to export FILTERED products only, or Cancel to use "Export All CSV" for all products.')){return;}
+    exportFilteredCSV();
+    return;
+  }
+  var s=getExportSettings();
+  var url='/api/stores/'+currentStoreId+'/export/csv?vendor='+encodeURIComponent(s.vendor)
+    +'&price_adjust='+s.price_adjust
+    +'&price_adjust_type='+encodeURIComponent(s.price_adjust_type)
+    +'&inventory='+s.inventory
+    +'&whatsapp='+encodeURIComponent(s.whatsapp)
+    +'&return_policy='+encodeURIComponent(s.return_policy)
+    +'&status='+encodeURIComponent(s.status);
+  document.getElementById('export-status-text').textContent='Please wait... Processing '+((currentStoreStats||{}).total_products||0).toLocaleString()+' products';
+  runFetchDownload(url, 'store_'+currentStoreId+'_products.zip');
+}
+
+function showExportProgress(){
+  var modal = document.getElementById('export-progress-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  document.getElementById('export-progress-bar').style.width='0%';
+  document.getElementById('export-progress-percent').textContent='0%';
+  document.getElementById('export-status-text').textContent='Preparing export files...';
+  document.getElementById('export-file-count').textContent='Calculating...';
+}
+
+function simulateExportProgress(){
+  // Estimate file count based on product count
+  var stats=currentStoreStats||{};
+  var totalProducts=stats.total_products||1000;
+  var estimatedFiles=Math.max(1,Math.ceil(totalProducts/7000));
+  
+  document.getElementById('export-file-count').textContent=estimatedFiles;
+  
+  var progress=0;
+  var interval=setInterval(function(){
+    progress+=2;  // Slower increment
+    if(progress>85)progress=85;  // Cap at 85% - fetch will complete it
+    
+    document.getElementById('export-progress-bar').style.width=progress+'%';
+    document.getElementById('export-progress-percent').textContent=progress+'%';
+    
+    if(progress<20){
+      document.getElementById('export-status-text').textContent='Preparing export files...';
+    }else if(progress<40){
+      document.getElementById('export-status-text').textContent='Creating file 1 of '+estimatedFiles+'...';
+    }else if(progress<60){
+      var mid=Math.ceil(estimatedFiles/2);
+      document.getElementById('export-status-text').textContent='Creating file '+mid+' of '+estimatedFiles+'...';
+    }else if(progress<80){
+      document.getElementById('export-status-text').textContent='Creating file '+estimatedFiles+' of '+estimatedFiles+'...';
+    }else{
+      document.getElementById('export-status-text').textContent='Packaging files into ZIP... Almost done!';
+    }
+    
+    if(progress>=85){
+      clearInterval(interval);
+      // Let fetch() complete the progress
+    }
+  },500);  // Update every 500ms
+}
+
+function getExportSettings(){
+  var adjustType = document.getElementById('export-price-adjust-type').value;
+  var priceAdjust;
+  
+  if (adjustType === 'fixed') {
+    priceAdjust = parseFloat(document.getElementById('export-price-adjust-fixed').value || 0);
+  } else {
+    priceAdjust = parseInt(document.getElementById('export-price-adjust-percentage').value || 0);
+  }
+  
+  return {
+    vendor: document.getElementById('export-vendor').value || '',
+    price_adjust: priceAdjust,
+    price_adjust_type: adjustType,
+    inventory: parseInt(document.getElementById('export-inventory').value || 0),
+    whatsapp: document.getElementById('export-whatsapp').value || '12363148438',
+    return_policy: document.getElementById('export-return-policy').value || 'within 7 days',
+    status: document.getElementById('export-status').value || 'Active'
+  };
+}
+
+function buildExportSettingsQS(s){
+  return '&vendor='+encodeURIComponent(s.vendor)
+    +'&price_adjust='+s.price_adjust
+    +'&price_adjust_type='+encodeURIComponent(s.price_adjust_type)
+    +'&inventory='+s.inventory
+    +'&whatsapp='+encodeURIComponent(s.whatsapp)
+    +'&return_policy='+encodeURIComponent(s.return_policy)
+    +'&status='+encodeURIComponent(s.status);
+}
+
+function runFetchDownload(url, filename){
+  showExportProgress();
+  simulateExportProgress();
+  fetch(url)
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+    .then(function(blob){
+      var u=window.URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=u; a.download=filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      window.URL.revokeObjectURL(u);
+      document.getElementById('export-progress-bar').style.width='100%';
+      document.getElementById('export-progress-percent').textContent='100%';
+      document.getElementById('export-status-text').textContent='✓ Download complete! Check your Downloads folder.';
+      document.getElementById('export-status-text').className='text-green-600 mb-8 text-lg font-bold';
+      setTimeout(function(){
+        var m=document.getElementById('export-progress-modal');
+        m.classList.add('hidden'); m.style.display='none';
+        showToast('ZIP file downloaded successfully!','success');
+      },2000);
+    })
+    .catch(function(err){
+      document.getElementById('export-progress-bar').style.width='100%';
+      document.getElementById('export-progress-bar').className='bg-red-500 h-4 rounded-full transition-all duration-500 ease-out';
+      document.getElementById('export-progress-percent').textContent='Error';
+      document.getElementById('export-status-text').textContent='❌ Export failed: '+err.message;
+      document.getElementById('export-status-text').className='text-red-600 mb-8 text-lg font-bold';
+      setTimeout(function(){
+        var m=document.getElementById('export-progress-modal');
+        m.classList.add('hidden'); m.style.display='none';
+        showToast('Export failed. Please try again.','error');
+      },3000);
+    });
+}
+
+function exportFilteredCSV(){
+  if(!currentStoreId)return;
+  var params=getFilterParams();
+  var qs=buildFilterQueryString(params);
+  var s=getExportSettings();
+  // Map vendor→exp_vendor for the filtered endpoint
+  var settingsQS='&exp_vendor='+encodeURIComponent(s.vendor)
+    +'&price_adjust='+s.price_adjust
+    +'&price_adjust_type='+encodeURIComponent(s.price_adjust_type)
+    +'&inventory='+s.inventory
+    +'&whatsapp='+encodeURIComponent(s.whatsapp)
+    +'&return_policy='+encodeURIComponent(s.return_policy)
+    +'&status='+encodeURIComponent(s.status);
+  var url='/api/stores/'+currentStoreId+'/export/filtered-csv'+(qs||'?')+settingsQS;
+  runFetchDownload(url, 'store_'+currentStoreId+'_filtered.zip');
+}
+
+function exportByCategory(){
+  if(!currentStoreId)return;
+  var s=getExportSettings();
+  var url='/api/stores/'+currentStoreId+'/export/by-category?'+buildExportSettingsQS(s).substring(1);
+  runFetchDownload(url, 'store_'+currentStoreId+'_by_category.zip');
+}
+
+function exportJSON(){
+  if(!currentStoreId)return;showToast('Preparing JSON...','info');
+  fetch('/api/stores/'+currentStoreId+'/export/json').then(function(r){return r.blob();})
+  .then(function(blob){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download='products.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);showToast('JSON downloaded!','success');});
+}
+
+// ── WOOCOMMERCE SCRAPER ───────────────────────────────────────────────────────
+function startWooScrape(){
+  var url=document.getElementById('woo-url-input').value.trim();
+  if(!url){showToast('Please enter a WooCommerce store URL','warning');return;}
+  var ck=document.getElementById('woo-ck').value.trim();
+  var cs=document.getElementById('woo-cs').value.trim();
+  var btn=document.getElementById('woo-scrape-btn'); var stopBtn=document.getElementById('woo-stop-btn');
+  btn.disabled=true;btn.classList.add('opacity-60','cursor-not-allowed');stopBtn.classList.remove('hidden');
+  document.getElementById('woo-progress-section').classList.remove('hidden');
+  document.getElementById('live-indicator').classList.remove('hidden');document.getElementById('live-indicator').classList.add('flex');
+  document.getElementById('woo-progress-log').innerHTML='';
+  setWooProgress(0,'Connecting...',0,0,'-',0,0,'');
+  if(wooSSE){wooSSE.close();wooSSE=null;}
+  fetch('/api/woo/scrape',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({url:url,consumer_key:ck,consumer_secret:cs})})
+  .then(function(r){return r.json();})
+  .then(function(d){wooActiveJobId=d.job_id;listenWooProgress(wooActiveJobId);showToast('WooCommerce scrape started!','success');})
+  .catch(function(e){showToast('Failed: '+e.message,'error');resetWooBtn();});
+}
+
+function stopWooScrape(){
+  if(!wooActiveJobId)return;
+  var btn=document.getElementById('woo-stop-btn');btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Stopping...';
+  fetch('/api/woo/scrape/'+wooActiveJobId+'/stop',{method:'POST'}).catch(function(){});
+}
+
+function listenWooProgress(jobId){
+  wooSSE=new EventSource('/api/woo/progress/'+jobId);
+  wooSSE.onmessage=function(e){
+    var evt=JSON.parse(e.data);
+    if(evt.status==='__done__'){wooSSE.close();wooSSE=null;resetWooBtn();loadWooStores();return;}
+    setWooProgress(evt.percentage||0,evt.message||'',evt.products_found||0,evt.products_total||0,evt.page||'-',evt.images_downloaded||0,evt.images_total||0,evt.current_product||'');
+    appendLog(evt.message,evt.status,'woo-progress-log');
+    if(evt.status==='complete'||evt.status==='error'||evt.status==='stopped'){
+      wooSSE.close();wooSSE=null;resetWooBtn();
+      if(evt.status==='complete')showToast('WooCommerce scrape completed! '+evt.message,'success');
+      if(evt.status==='stopped')showToast('Scrape stopped','info');
+      if(evt.status==='error')showToast('Error: '+evt.message,'error');
+      setTimeout(loadWooStores,600);
+    }
+  };
+  wooSSE.onerror=function(){wooSSE.close();wooSSE=null;resetWooBtn();loadWooStores();};
+}
+
+function setWooProgress(pct,status,products,productsTotal,page,imgsDone,imgsTotal,current){
+  document.getElementById('woo-progress-bar').style.width=Math.round(pct)+'%';
+  document.getElementById('woo-progress-pct').textContent=Math.round(pct)+'%';
+  document.getElementById('woo-progress-status').textContent=status;
+  document.getElementById('woo-stat-products').textContent=(productsTotal>0)?(products+' / '+productsTotal):products;
+  document.getElementById('woo-stat-page').textContent=page;
+  document.getElementById('woo-stat-images').textContent=(imgsTotal>0)?(imgsDone+' / '+imgsTotal):imgsDone;
+  var row=document.getElementById('woo-current-row');
+  if(current){row.classList.remove('hidden');document.getElementById('woo-current-name').textContent=current;}else{row.classList.add('hidden');}
+}
+
+function resetWooBtn(){
+  var btn=document.getElementById('woo-scrape-btn');var stop=document.getElementById('woo-stop-btn');
+  if(btn){btn.disabled=false;btn.classList.remove('opacity-60','cursor-not-allowed');}
+  if(stop){stop.classList.add('hidden');stop.disabled=false;stop.innerHTML='<i class="fas fa-stop mr-2"></i>Stop';}
+  document.getElementById('live-indicator').classList.add('hidden');
+  wooActiveJobId=null;
+}
+
+function loadWooStores(){
+  var grid=document.getElementById('woo-stores-grid');if(!grid)return;
+  grid.innerHTML='<div class="col-span-full text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i><p>Loading...</p></div>';
+  fetch('/api/stores').then(function(r){return r.json();})
+  .then(function(stores){
+    if(!stores.length){grid.innerHTML='<div class="col-span-full flex flex-col items-center justify-center py-24 text-gray-400"><div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mb-4"><i class="fab fa-wordpress text-3xl text-purple-300"></i></div><p class="text-lg font-semibold">No WooCommerce stores scraped yet</p><p class="text-sm mt-1">Enter a WooCommerce URL above</p></div>';return;}
+    grid.innerHTML=stores.map(wooStoreCard).join('');
+  }).catch(function(){grid.innerHTML='<div class="col-span-full text-center text-red-400 py-8">Failed to load stores</div>';});
+}
+
+function wooStoreCard(s){
+  var date=s.scraped_at?new Date(s.scraped_at).toLocaleDateString():'In progress';
+  var sc={complete:'bg-green-100 text-green-700',scraping:'bg-yellow-100 text-yellow-700',stopped:'bg-orange-100 text-orange-700',error:'bg-red-100 text-red-700',pending:'bg-gray-100 text-gray-500'}[s.scrape_status]||'bg-gray-100 text-gray-500';
+  return '<div class="card bg-white rounded-2xl shadow-sm border border-purple-100 overflow-hidden">'+
+    '<div class="h-1.5 bg-gradient-to-r from-purple-600 to-indigo-600"></div><div class="p-5">'+
+    '<div class="flex items-start justify-between mb-3"><div><div class="font-black text-gray-900 text-base truncate max-w-[150px]">'+escHtml(s.name||s.domain)+'</div>'+
+    '<div class="text-xs text-gray-400 flex items-center gap-1 mt-0.5"><i class="fab fa-wordpress text-purple-400"></i>'+escHtml(s.domain)+'</div></div>'+
+    '<span class="text-xs px-2.5 py-1 rounded-full font-bold '+sc+'">'+s.scrape_status+'</span></div>'+
+    '<div class="grid grid-cols-3 gap-2 mb-4">'+
+    '<div class="text-center p-2.5 bg-purple-50 rounded-xl"><div class="font-black text-purple-600">'+(s.total_products||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Products</div></div>'+
+    '<div class="text-center p-2.5 bg-indigo-50 rounded-xl"><div class="font-black text-indigo-600">'+(s.total_variants||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Variants</div></div>'+
+    '<div class="text-center p-2.5 bg-blue-50 rounded-xl"><div class="font-black text-blue-600">'+(s.total_images||0).toLocaleString()+'</div><div class="text-xs text-gray-400 mt-0.5">Images</div></div></div>'+
+    '<div class="text-xs text-gray-400 mb-3"><i class="fas fa-clock mr-1"></i>'+date+'</div>'+
+    '<button onclick="showDashboard('+s.id+',\''+escHtml(s.name||s.domain)+'\',\''+escHtml(s.domain)+'\')" class="btn w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:scale-105 mb-2"><i class="fas fa-chart-bar mr-2"></i>View Dashboard</button>'+
+    '<div class="grid grid-cols-2 gap-1.5">'+
+    '<a href="#" onclick="exportStoreCSV('+s.id+');return false;" class="btn py-2 border border-gray-200 hover:bg-green-50 text-xs font-semibold text-gray-600 hover:text-green-600 rounded-lg text-center"><i class="fas fa-file-csv mr-1"></i>CSV</a>'+
+    '<button onclick="deleteStore('+s.id+',\''+escHtml(s.domain)+'\')" class="btn py-2 border border-red-100 hover:bg-red-50 text-xs font-semibold text-red-400 hover:text-red-600 rounded-lg"><i class="fas fa-trash mr-1"></i>Delete</button>'+
+    '</div></div></div>';
+}
+
+// ── PUBLISHER ─────────────────────────────────────────────────────────────────
+function loadPublisherData(){loadCredentials();loadScrapedStores();loadPublishJobs();}
+
+function toggleAddCredForm(){
+  var f=document.getElementById('cred-form');f.classList.toggle('hidden');
+  document.getElementById('cred-label').value='';document.getElementById('cred-domain').value='';document.getElementById('cred-token').value='';
+  document.getElementById('test-result').classList.add('hidden');
+}
+function toggleTokenVisibility(){
+  var el=document.getElementById('cred-token');var icon=document.getElementById('token-eye-icon');
+  if(el.type==='password'){el.type='text';icon.className='fas fa-eye-slash';}else{el.type='password';icon.className='fas fa-eye';}
+}
+
+function testCredential(){
+  var domain=document.getElementById('cred-domain').value.trim();
+  var token=document.getElementById('cred-token').value.trim();
+  if(!domain||!token){showToast('Enter domain and token first','warning');return;}
+  var btn=document.getElementById('test-btn');var res=document.getElementById('test-result');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';res.classList.add('hidden');
+  fetch('/api/credentials',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({label:'test',shop_domain:domain,access_token:token})})
+  .then(function(r){return r.json();})
+  .then(function(cred){
+    return fetch('/api/credentials/'+cred.id+'/test',{method:'POST'}).then(function(r2){return r2.json();}).then(function(d){
+      fetch('/api/credentials/'+cred.id,{method:'DELETE'});
+      btn.disabled=false;btn.innerHTML='<i class="fas fa-plug mr-2"></i>Test Connection';res.classList.remove('hidden');
+      if(d.success){res.className='mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 bg-green-50 text-green-700 border-2 border-green-200';res.innerHTML='<i class="fas fa-check-circle text-xl"></i><span>Connected: '+escHtml(d.shop_name||domain)+'</span>';showToast('Connection successful!','success');}
+      else{res.className='mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 bg-red-50 text-red-700 border-2 border-red-200';res.innerHTML='<i class="fas fa-times-circle text-xl"></i><span>'+(d.detail||'Connection failed')+'</span>';showToast('Connection failed','error');}
+    });
+  }).catch(function(e){btn.disabled=false;btn.innerHTML='<i class="fas fa-plug mr-2"></i>Test Connection';showToast('Error: '+e.message,'error');});
+}
+
+function saveCredential(){
+  var label=document.getElementById('cred-label').value.trim();
+  var domain=document.getElementById('cred-domain').value.trim();
+  var token=document.getElementById('cred-token').value.trim();
+  if(!label||!domain||!token){showToast('Please fill all fields','warning');return;}
+  fetch('/api/credentials',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({label:label,shop_domain:domain,access_token:token})})
+  .then(function(r){return r.json();}).then(function(){toggleAddCredForm();loadCredentials();showToast('Credential saved!','success');})
+  .catch(function(e){showToast('Failed: '+e.message,'error');});
+}
+
+function loadCredentials(){
+  fetch('/api/credentials').then(function(r){return r.json();})
+  .then(function(creds){
+    var el=document.getElementById('credentials-list');var sel=document.getElementById('pub-target-cred');
+    if(!creds.length){el.innerHTML='<div class="text-center py-8 text-gray-400"><i class="fas fa-key text-3xl mb-3 block opacity-30"></i><p class="font-medium">No stores added yet</p></div>';sel.innerHTML='<option value="">-- Select target store --</option>';return;}
+    el.innerHTML='<div class="grid grid-cols-1 gap-3">'+creds.map(function(c){return '<div class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">'+
+      '<div><div class="font-bold text-gray-900 text-sm">'+escHtml(c.label)+'</div><div class="text-xs text-gray-400 mt-0.5"><i class="fas fa-store mr-1"></i>'+escHtml(c.shop_domain)+'</div></div>'+
+      '<button onclick="deleteCred('+c.id+')" class="btn flex items-center gap-1.5 px-3 py-1.5 text-xs border-2 border-red-200 hover:bg-red-50 text-red-500 rounded-lg"><i class="fas fa-trash"></i>Delete</button></div>';}).join('')+'</div>';
+    sel.innerHTML='<option value="">-- Select target store --</option>'+creds.map(function(c){return '<option value="'+c.id+'">'+escHtml(c.label)+' ('+escHtml(c.shop_domain)+')</option>';}).join('');
+  });
+}
+
+function deleteCred(id){
+  if(!confirm('Delete this credential?'))return;
+  fetch('/api/credentials/'+id,{method:'DELETE'}).then(function(){loadCredentials();showToast('Deleted','info');});
+}
+
+function loadScrapedStores(){
+  fetch('/api/stores').then(function(r){return r.json();})
+  .then(function(stores){
+    var el=document.getElementById('pub-source-store');
+    el.innerHTML='<option value="">-- Select scraped store --</option>'+stores.filter(function(s){return s.scrape_status==='complete'||s.scrape_status==='stopped';}).map(function(s){return '<option value="'+s.id+'">'+escHtml(s.domain)+' ('+s.total_products+' products)</option>';}).join('');
+  });
+}
+
+function startPublish(){
+  var storeId=document.getElementById('pub-source-store').value;
+  var credId=document.getElementById('pub-target-cred').value;
+  if(!storeId||!credId){showToast('Select both stores first','warning');return;}
+  var btn=document.getElementById('pub-btn');var stopBtn=document.getElementById('pub-stop-btn');
+  btn.disabled=true;btn.classList.add('opacity-60');stopBtn.classList.remove('hidden');
+  document.getElementById('pub-progress-section').classList.remove('hidden');
+  document.getElementById('pub-log').innerHTML='';
+  if(publishSSE){publishSSE.close();publishSSE=null;}
+  fetch('/api/publish',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({source_store_id:parseInt(storeId),credential_id:parseInt(credId)})})
+  .then(function(r){return r.json();})
+  .then(function(d){activePublishJobKey=d.job_key;listenPublishProgress(d.job_key);showToast('Publishing started!','success');})
+  .catch(function(e){showToast('Failed: '+e.message,'error');resetPublishBtn();});
+}
+
+function stopPublish(){
+  if(!activePublishJobKey)return;
+  fetch('/api/publish/'+activePublishJobKey+'/stop',{method:'POST'}).then(function(){showToast('Stop signal sent','info');}).catch(function(){});
+}
+
+function listenPublishProgress(jobKey){
+  publishSSE=new EventSource('/api/publish/'+jobKey+'/progress');
+  publishSSE.onmessage=function(e){
+    var evt=JSON.parse(e.data);
+    if(evt.status==='__done__'){publishSSE.close();publishSSE=null;resetPublishBtn();loadPublishJobs();return;}
+    document.getElementById('pub-bar').style.width=Math.round(evt.percentage||0)+'%';
+    document.getElementById('pub-pct').textContent=Math.round(evt.percentage||0)+'%';
+    document.getElementById('pub-status').textContent=evt.message||'';
+    document.getElementById('pub-stat-done').textContent=evt.published||0;
+    document.getElementById('pub-stat-total').textContent=evt.total||0;
+    document.getElementById('pub-stat-failed').textContent=evt.failed||0;
+    var row=document.getElementById('pub-current-row');
+    if(evt.current_product){row.classList.remove('hidden');document.getElementById('pub-current-name').textContent=evt.current_product;}else{row.classList.add('hidden');}
+    appendLog(evt.message,evt.status,'pub-log');
+    if(evt.status==='complete'||evt.status==='error'||evt.status==='stopped'){
+      publishSSE.close();publishSSE=null;resetPublishBtn();
+      if(evt.status==='complete')showToast('Publishing complete!','success');
+      if(evt.status==='stopped')showToast('Publishing stopped','info');
+      if(evt.status==='error')showToast('Publishing failed','error');
+      setTimeout(loadPublishJobs,600);
+    }
+  };
+  publishSSE.onerror=function(){publishSSE.close();publishSSE=null;resetPublishBtn();};
+}
+
+function resetPublishBtn(){
+  var btn=document.getElementById('pub-btn');var stop=document.getElementById('pub-stop-btn');
+  if(btn){btn.disabled=false;btn.classList.remove('opacity-60');}
+  if(stop){stop.classList.add('hidden');stop.disabled=false;stop.innerHTML='<i class="fas fa-stop mr-1"></i>Stop';}
+  activePublishJobKey=null;
+}
+
+function loadPublishJobs(){
+  fetch('/api/publish/jobs').then(function(r){
+    if(!r.ok)return[];return r.json();
+  }).then(function(jobs){
+    var el=document.getElementById('publish-history');
+    if(!jobs||!jobs.length){el.innerHTML='<div class="text-center py-8 text-gray-400"><i class="fas fa-history text-3xl mb-3 block opacity-30"></i><p class="font-medium">No publish jobs yet</p></div>';return;}
+    el.innerHTML='<div class="overflow-x-auto"><table class="min-w-full text-xs"><thead><tr class="bg-gray-50 text-gray-400 uppercase tracking-wider border-b border-gray-100"><th class="px-3 py-3 text-left font-bold">Status</th><th class="px-3 py-3 text-left font-bold">Source</th><th class="px-3 py-3 text-left font-bold">Target</th><th class="px-3 py-3 text-right font-bold">Published</th><th class="px-3 py-3 text-right font-bold">Failed</th><th class="px-3 py-3 text-left font-bold">Started</th></tr></thead><tbody class="divide-y divide-gray-50">'+
+    jobs.map(function(j){
+      var sc=j.status==='complete'?'text-green-600':j.status==='error'?'text-red-500':j.status==='running'?'text-yellow-600':'text-gray-500';
+      return '<tr class="hover:bg-gray-50"><td class="px-3 py-3"><span class="'+sc+' font-bold">'+j.status+'</span></td>'+
+        '<td class="px-3 py-3 font-medium text-gray-700">'+escHtml(j.source_store||'')+'</td>'+
+        '<td class="px-3 py-3 font-medium text-gray-700">'+escHtml(j.target_store||'')+'</td>'+
+        '<td class="px-3 py-3 text-right font-black text-green-600">'+(j.published_products||0)+' / '+(j.total_products||0)+'</td>'+
+        '<td class="px-3 py-3 text-right font-black text-red-500">'+(j.failed_products||0)+'</td>'+
+        '<td class="px-3 py-3 text-gray-400">'+(j.started_at?new Date(j.started_at).toLocaleString():'—')+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+  }).catch(function(){});
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+showMainView('home');
+attachSettingsListeners();
+</script>
+
+<!-- ═══════ EXPORT SETTINGS MODAL ═══════ -->
+<div id="export-settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background: rgba(0,0,0,0.8); overflow-y: auto;">
+  <div class="bg-white rounded-2xl p-8 max-w-4xl w-full mx-4 my-8 shadow-2xl">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 class="text-3xl font-bold text-gray-900">Export Settings</h3>
+        <p class="text-gray-500 mt-1">Customize your export before downloading</p>
+      </div>
+      <button onclick="closeExportSettings()" class="text-gray-400 hover:text-gray-600 text-2xl">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- Settings Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      
+      <!-- Vendor Name -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+          <i class="fas fa-store text-blue-600"></i> Vendor Name
+        </label>
+        <input type="text" id="export-vendor" placeholder="e.g., Luxury Wardrobe" 
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          value="Luxury Wardrobe">
+        <p class="text-xs text-gray-500 mt-1">Leave empty to keep original vendor names</p>
+      </div>
+      
+      <!-- Price Adjustment -->
+      <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+          <i class="fas fa-tag text-green-600"></i> Price Adjustment
+        </label>
+        
+        <!-- Price Adjustment Type -->
+        <div class="mb-3">
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Adjustment Type</label>
+          <select id="export-price-adjust-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" onchange="updatePriceAdjustOptions()">
+            <option value="percentage" selected>Percentage (%)</option>
+            <option value="fixed">Fixed Amount ($)</option>
+          </select>
+        </div>
+        
+        <!-- Percentage Options -->
+        <div id="percentage-options">
+          <select id="export-price-adjust-percentage" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+            <option value="0">No Change (Keep Original)</option>
+            <option value="-50">Decrease by 50%</option>
+            <option value="-40">Decrease by 40%</option>
+            <option value="-30">Decrease by 30%</option>
+            <option value="-20">Decrease by 20%</option>
+            <option value="-15" selected>Decrease by 15%</option>
+            <option value="-10">Decrease by 10%</option>
+            <option value="10">Increase by 10%</option>
+            <option value="20">Increase by 20%</option>
+            <option value="30">Increase by 30%</option>
+            <option value="40">Increase by 40%</option>
+            <option value="50">Increase by 50%</option>
+          </select>
+        </div>
+        
+        <!-- Fixed Amount Options -->
+        <div id="fixed-options" style="display: none;">
+          <div class="flex gap-2">
+            <input type="number" id="export-price-adjust-fixed" 
+              placeholder="e.g., -1 or 5" 
+              step="0.01"
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              value="-1">
+            <span class="flex items-center px-3 py-2 bg-gray-100 rounded-lg text-sm font-semibold text-gray-700">USD</span>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Use negative for decrease (e.g., -1), positive for increase (e.g., 5)</p>
+        </div>
+      </div>
+      
+      <!-- Inventory Quantity -->
+      <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+          <i class="fas fa-boxes text-purple-600"></i> Inventory Quantity
+        </label>
+        <input type="number" id="export-inventory" placeholder="e.g., 300" 
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+          value="300" min="0">
+        <p class="text-xs text-gray-500 mt-1">Set to 0 to keep original quantities</p>
+      </div>
+      
+      <!-- WhatsApp Number - HARDCODED, not shown to user -->
+      <!-- wa.me/12363148438 is fixed for this client -->
+      <input type="hidden" id="export-whatsapp" value="12363148438">
+      
+      <!-- Return Policy -->
+      <div class="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-4 border border-red-200">
+        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+          <i class="fas fa-undo text-red-600"></i> Return Policy
+        </label>
+        <input type="text" id="export-return-policy" placeholder="e.g., within 7 days" 
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+          value="within 7 days">
+        <p class="text-xs text-gray-500 mt-1">Replaces "within 1 month" in descriptions</p>
+      </div>
+      
+      <!-- Product Status -->
+      <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 border border-teal-200">
+        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+          <i class="fas fa-toggle-on text-teal-600"></i> Product Status
+        </label>
+        <select id="export-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+          <option value="Active" selected>Active</option>
+          <option value="Draft">Draft</option>
+        </select>
+      </div>
+      
+    </div>
+    
+    <!-- Preview Box -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-6 border border-indigo-200">
+      <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <i class="fas fa-eye text-indigo-600"></i> Preview of Changes
+      </h4>
+      <div class="text-sm text-gray-700 space-y-1">
+        <div><strong>Vendor:</strong> <span id="preview-vendor">Luxury Wardrobe</span></div>
+        <div><strong>Price:</strong> Original $100.00 → <span id="preview-price" class="text-green-600 font-bold">$85.00 (15% off)</span></div>
+        <div><strong>Inventory:</strong> <span id="preview-inventory" class="text-purple-600 font-bold">300 units</span></div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between">
+      <button onclick="resetExportSettings()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all">
+        <i class="fas fa-redo mr-2"></i> Reset to Defaults
+      </button>
+      <div class="flex gap-3">
+        <button onclick="closeExportSettings()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all">
+          Cancel
+        </button>
+        <button onclick="startExportWithSettings()" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+          <i class="fas fa-download mr-2"></i> Export Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ EXPORT PROGRESS MODAL ═══════ -->
+<div id="export-progress-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background: rgba(0,0,0,0.7);">
+  <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 shadow-2xl">
+    <div class="text-center">
+      <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse">
+        <i class="fas fa-file-export text-white text-3xl"></i>
+      </div>
+      <h3 class="text-3xl font-bold text-gray-900 mb-3">Exporting Products</h3>
+      <p class="text-gray-600 mb-8 text-lg" id="export-status-text">Preparing export files...</p>
+      
+      <!-- Overall Progress -->
+      <div class="mb-8">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+          <span>Progress</span>
+          <span id="export-progress-percent" class="font-bold text-blue-600">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div id="export-progress-bar" class="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <!-- File Count Info -->
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="text-left">
+            <p class="text-sm text-gray-600 mb-1">Files to Create</p>
+            <p class="text-3xl font-bold text-gray-900" id="export-file-count">Calculating...</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-600 mb-1">Max File Size</p>
+            <p class="text-3xl font-bold text-gray-900">15<span class="text-lg">MB</span></p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Info Box -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p class="text-sm text-blue-800 flex items-start">
+          <i class="fas fa-info-circle mr-2 mt-0.5"></i>
+          <span>All files will be packaged in a ZIP file for easy download. Each CSV is ready for Shopify import!</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
